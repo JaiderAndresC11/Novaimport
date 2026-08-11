@@ -5,7 +5,10 @@ const cors = require('cors');                 // Trae CORS
 const app = express();                         // Crea la aplicación del servidor
 
 app.use(cors());                               // Permite peticiones desde el navegador
-app.use(express.json());                       // Permite recibir datos en formato JSON
+app.use(express.json());  
+
+const productosRoutes = require('./routes/productos.routes');
+app.use('/api/productos', productosRoutes);// Permite recibir datos en formato JSON
 
 app.get('/', (req, res) => {                   // Ruta de prueba: "/"
   res.json({ mensaje: 'API de NovaImport funcionando' });  // Responde con un mensaje
