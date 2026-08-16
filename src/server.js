@@ -1,20 +1,23 @@
-require('dotenv').config();                  // Carga variables de entorno
-const express = require('express');           // Trae Express
-const cors = require('cors');                 // Trae CORS
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
 
-const app = express();                         // Crea la aplicación del servidor
+const app = express();
 
-app.use(cors());                               // Permite peticiones desde el navegador
-app.use(express.json());  
+app.use(cors());
+app.use(express.json());
 
 const productosRoutes = require('./routes/productos.routes');
-app.use('/api/productos', productosRoutes);// Permite recibir datos en formato JSON
+const pedidosRoutes = require('./routes/pedidos.routes');
 
-app.get('/', (req, res) => {                   // Ruta de prueba: "/"
-  res.json({ mensaje: 'API de NovaImport funcionando' });  // Responde con un mensaje
+app.use('/api/productos', productosRoutes);
+app.use('/api/pedidos', pedidosRoutes);
+
+app.get('/', (req, res) => {
+  res.json({ mensaje: 'API de NovaImport funcionando' });
 });
 
-const PORT = process.env.PORT || 3000;         // Usa el puerto del .env, o 3000 si no hay
-app.listen(PORT, () => {                       // Arranca el servidor
-  console.log(`Servidor corriendo en puerto ${PORT}`);  // Avisa en consola
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
