@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaImport — Tecnología importada</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo"><span class="dot">●</span> NovaImport</div>
+      <button class="cart-button" id="btn-abrir-carrito">
+        Carrito <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">Importados · 100% Original  · Con garantia con la marca</p>
+      <h1>Tecnología Apple y Samsung, importada al mejor precio</h1>
+      <p>iPhones, MacBooks, iPads, smartwatches y más — productos originales importados, sin intermediarios.</p>
+    </section>
+
+    <div class="filters" id="filters">
+      <button class="filter-chip active" data-categoria="todos">Todos</button>
+    </div>
+
+    <div class="grid" id="grid-productos">
+      <p class="empty-state">Cargando productos…</p>
+    </div>
+  </div>
+
+  <div class="cart-overlay hidden" id="cart-overlay"></div>
+  <div class="cart-drawer hidden" id="cart-drawer">
+    <h2>
+      Tu carrito
+      <button class="cart-close" id="btn-cerrar-carrito">&times;</button>
+    </h2>
+    <div class="cart-items" id="cart-items">
+      <p class="empty-state">Tu carrito está vacío.</p>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cart-total">$0</span>
+      </div>
+      <form class="checkout-form" id="form-checkout">
+        <div class="field">
+          <input type="text" id="input-nombre" placeholder="Tu nombre" required />
+        </div>
+        <div class="field">
+          <input type="text" id="input-contacto" placeholder="Correo o teléfono" required />
+        </div>
+        <button type="submit" class="btn-checkout">Confirmar pedido</button>
+        <p class="checkout-msg" id="checkout-msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

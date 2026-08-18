@@ -13,9 +13,7 @@ const pedidosRoutes = require('./routes/pedidos.routes');
 app.use('/api/productos', productosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 
-app.get('/', (req, res) => {
-  res.json({ mensaje: 'API de NovaImport funcionando' });
-});
+app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
