@@ -1,4 +1,19 @@
-node_modules/
+# Variables de entorno y contraseñas
 .env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Node.js
+node_modules/
+
+# Editores
+.vscode/
+.idea/
+
+# Archivos temporales
 *.log
-.DS_Store
+*.tmp

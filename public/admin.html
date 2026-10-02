@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaImport — Administración</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo"><span class="dot">●</span> NovaImport <span class="admin-tag">Admin</span></div>
+      <div class="header-actions">
+        <a href="/index.html" class="support-button">Ver tienda</a>
+        <button class="support-button" id="btn-logout">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <nav class="admin-tabs" id="admin-tabs">
+      <button class="admin-tab active" data-tab="productos">Productos</button>
+      <button class="admin-tab" data-tab="pqrs">PQR'S <span class="tab-count" id="count-pqrs">0</span></button>
+      <button class="admin-tab" data-tab="garantias">Garantías <span class="tab-count" id="count-garantias">0</span></button>
+      <button class="admin-tab" data-tab="solicitudes">Solicitudes de acceso <span class="tab-count" id="count-solicitudes">0</span></button>
+    </nav>
+
+    <!-- ===================== PRODUCTOS ===================== -->
+    <section class="admin-panel" id="panel-productos">
+      <div class="admin-panel-header">
+        <h2>Productos</h2>
+        <button class="btn-checkout btn-inline" id="btn-nuevo-producto">+ Nuevo producto</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="tabla-productos">
+          <thead>
+            <tr>
+              <th>Imagen</th>
+              <th>Nombre</th>
+              <th>Capacidad</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-productos">
+            <tr><td colspan="8" class="empty-state">Cargando productos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== PQR'S ===================== -->
+    <section class="admin-panel hidden" id="panel-pqrs">
+      <h2>Casos de PQR'S</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="tabla-pqrs">
+          <thead>
+            <tr>
+              <th>Caso</th>
+              <th>Cliente</th>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Archivo</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pqrs">
+            <tr><td colspan="8" class="empty-state">Cargando casos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== GARANTÍAS ===================== -->
+    <section class="admin-panel hidden" id="panel-garantias">
+      <h2>Solicitudes de garantía</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="tabla-garantias">
+          <thead>
+            <tr>
+              <th>Caso</th>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th>Descripción</th>
+              <th>Archivo</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-garantias">
+            <tr><td colspan="8" class="empty-state">Cargando solicitudes…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== SOLICITUDES DE ACCESO ADMIN ===================== -->
+    <section class="admin-panel hidden" id="panel-solicitudes">
+      <h2>Solicitudes de acceso al panel</h2>
+      <p class="support-intro">Aprueba o rechaza a quienes pidan convertirse en administradores. Nadie puede entrar sin tu aprobación.</p>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="tabla-solicitudes">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-solicitudes">
+            <tr><td colspan="5" class="empty-state">Cargando solicitudes…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== MODAL PRODUCTO ===================== -->
+  <div class="support-overlay hidden" id="producto-overlay"></div>
+  <div class="support-drawer hidden" id="producto-drawer">
+    <h2>
+      <span id="producto-form-titulo">Nuevo producto</span>
+      <button class="cart-close" id="btn-cerrar-producto">&times;</button>
+    </h2>
+    <form class="checkout-form" id="form-producto">
+      <input type="hidden" id="producto-id" />
+      <div class="field">
+        <input type="text" id="producto-nombre" placeholder="Nombre del producto" required />
+      </div>
+      <div class="field field-row">
+        <input type="text" id="producto-categoria" placeholder="Categoría (ej: Iphone, Samsung, MacBook, SmartWatch)" required />
+        <input type="text" id="producto-capacidad" placeholder="Capacidad (ej: 256GB)" />
+      </div>
+      <div class="field">
+        <input type="text" id="producto-descripcion" placeholder="Descripción (ej: Nuevo - 256GB)" />
+      </div>
+      <div class="field field-row">
+        <input type="number" id="producto-precio" placeholder="Precio" min="0" required />
+        <input type="number" id="producto-stock" placeholder="Stock" min="0" required />
+      </div>
+      <div class="field">
+        <label class="file-label" for="producto-imagen">Imagen del producto <span id="producto-imagen-actual"></span></label>
+        <input type="file" id="producto-imagen" accept="image/*" />
+      </div>
+      <button type="submit" class="btn-checkout">Guardar producto</button>
+      <p class="checkout-msg" id="producto-msg"></p>
+    </form>
+  </div>
+
+  <!-- ===================== MODAL DETALLE DE CASO ===================== -->
+  <div class="support-overlay hidden" id="caso-overlay"></div>
+  <div class="support-drawer hidden" id="caso-drawer">
+    <h2>
+      <span id="caso-numero">Caso</span>
+      <button class="cart-close" id="btn-cerrar-caso">&times;</button>
+    </h2>
+
+    <div id="caso-info" class="caso-info">
+      <div class="caso-grid">
+        <div><strong>Cliente:</strong> <span id="caso-nombre-cliente"></span></div>
+        <div><strong>Contacto:</strong> <span id="caso-contacto-cliente"></span></div>
+        <div><strong>Teléfono:</strong> <span id="caso-telefono-cliente"></span></div>
+        <div><strong>Tipo / producto:</strong> <span id="caso-tipo-cliente"></span></div>
+        <div><strong>Fecha:</strong> <span id="caso-fecha"></span></div>
+        <div class="caso-full-width"><strong>Descripción:</strong> <span id="caso-descripcion"></span></div>
+        <div class="caso-full-width"><strong>Archivo:</strong> <span id="caso-archivo-wrap"></span></div>
+      </div>
+
+      <div class="field" style="margin-top:14px;">
+        <label for="caso-estado-select" class="field-label">Estado del caso</label>
+        <select id="caso-estado-select" class="estado-select"></select>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px; margin:20px 0 10px;">Historial de comentarios</h3>
+    <div id="caso-comentarios" class="caso-comentarios">
+      <p class="empty-state">Sin comentarios todavía.</p>
+    </div>
+
+    <form id="form-comentario" class="comentario-form">
+      <input type="hidden" id="caso-tipo" />
+      <input type="hidden" id="caso-id" />
+      <div class="field">
+        <textarea id="comentario-texto" class="comentario-textarea" placeholder="Escribe una actualización para el cliente... se le enviará por correo" required></textarea>
+      </div>
+      <button type="submit" class="btn-checkout comentario-btn">Enviar comentario</button>
+      <p class="checkout-msg" id="comentario-msg"></p>
+    </form>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

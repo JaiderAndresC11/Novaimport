@@ -25,7 +25,7 @@ async function obtenerProducto(req, res) {
   }
 }
 
-// POST /api/productos -> crea un producto nuevo
+// POST /api/productos -> crea un producto nuevo (multipart/form-data, campo "imagen" es el archivo)
 async function crearProducto(req, res) {
   const { nombre, categoria, descripcion, precio, stock } = req.body;
 
@@ -33,11 +33,13 @@ async function crearProducto(req, res) {
     return res.status(400).json({ error: 'Faltan campos requeridos: nombre, categoria, precio' });
   }
 
+  const imagen = req.file ? `/img/${req.file.filename}` : null;
+
   try {
     const [result] = await pool.query(
-      `INSERT INTO productos (nombre, categoria, descripcion, precio, stock)
-       VALUES (?, ?, ?, ?, ?)`,
-      [nombre, categoria, descripcion || null, precio, stock || 0]
+      `INSERT INTO productos (nombre, categoria, descripcion, precio, stock, imagen)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [nombre, categoria, descripcion || null, precio, stock || 0, imagen]
     );
     const [rows] = await pool.query('SELECT * FROM productos WHERE id = ?', [result.insertId]);
     res.status(201).json(rows[0]);
@@ -47,9 +49,11 @@ async function crearProducto(req, res) {
   }
 }
 
-// PUT /api/productos/:id -> edita un producto
+// PUT /api/productos/:id -> edita un producto (si se sube una nueva imagen, se reemplaza; si no, se conserva la actual)
 async function editarProducto(req, res) {
   const { nombre, categoria, descripcion, precio, stock } = req.body;
+  const nuevaImagen = req.file ? `/img/${req.file.filename}` : null;
+
   try {
     const [result] = await pool.query(
       `UPDATE productos
@@ -57,9 +61,10 @@ async function editarProducto(req, res) {
            categoria = COALESCE(?, categoria),
            descripcion = COALESCE(?, descripcion),
            precio = COALESCE(?, precio),
-           stock = COALESCE(?, stock)
+           stock = COALESCE(?, stock),
+           imagen = COALESCE(?, imagen)
        WHERE id = ?`,
-      [nombre ?? null, categoria ?? null, descripcion ?? null, precio ?? null, stock ?? null, req.params.id]
+      [nombre ?? null, categoria ?? null, descripcion ?? null, precio ?? null, stock ?? null, nuevaImagen, req.params.id]
     );
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Producto no encontrado' });

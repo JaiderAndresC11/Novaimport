@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaImport — Iniciar sesión</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .login-wrap {
+      max-width: 360px;
+      margin: 100px auto;
+      padding: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .login-wrap h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      margin: 0 0 24px;
+      text-align: center;
+    }
+    .login-wrap .field { margin-bottom: 14px; }
+    .login-wrap input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+    }
+    .login-msg { font-size: 13px; margin-top: 12px; min-height: 18px; text-align: center; }
+    .login-msg.error { color: var(--danger); }
+    .login-footer-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+    .login-footer-link a { color: var(--teal); text-decoration: none; }
+    .login-footer-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <h1>NovaImport Admin</h1>
+    <form id="form-login">
+      <div class="field">
+        <input type="text" id="login-usuario" placeholder="Usuario o correo" required autofocus />
+      </div>
+      <div class="field">
+        <input type="password" id="login-password" placeholder="Contraseña" required />
+      </div>
+      <button type="submit" class="btn-checkout">Ingresar</button>
+      <p class="login-msg" id="login-msg"></p>
+    </form>
+    <p class="login-footer-link">¿Eres nuevo administrador? <a href="/admin-solicitar.html">Solicita acceso</a></p>
+  </div>
+
+  <script>
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgEl = document.getElementById('login-msg');
+      msgEl.textContent = '';
+
+      const usuario = document.getElementById('login-usuario').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'No se pudo iniciar sesión');
+
+        window.location.href = '/admin.html';
+      } catch (err) {
+        msgEl.textContent = err.message;
+        msgEl.className = 'login-msg error';
+      }
+    });
+  </script>
+</body>
+</html>

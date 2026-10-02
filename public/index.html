@@ -10,9 +10,29 @@
   <div class="wrap">
     <header>
       <div class="logo"><span class="dot">●</span> NovaImport</div>
-      <button class="cart-button" id="btn-abrir-carrito">
-        Carrito <span class="cart-count" id="cart-count">0</span>
-      </button>
+      <div class="header-actions">
+        <button class="support-button" id="btn-abrir-pqrs">PQR'S</button>
+        <button class="support-button" id="btn-abrir-garantias">Garantías</button>
+        <button class="support-button" id="btn-abrir-login">Iniciar sesión</button>
+        <button class="support-button" id="btn-abrir-registro">Registrarme</button>
+        <button class="cart-button" id="btn-abrir-carrito">
+          Carrito <span class="cart-count" id="cart-count">0</span>
+        </button>
+        <div class="account-menu hidden" id="account-menu">
+          <button class="icon-btn" id="btn-avatar" title="Mi cuenta"><span id="avatar-inicial"></span></button>
+          <div class="account-dropdown hidden" id="account-dropdown">
+            <p class="account-dropdown-name" id="account-dropdown-nombre"></p>
+            <div class="account-dropdown-row">
+              <span>Modo oscuro</span>
+              <label class="switch">
+                <input type="checkbox" id="switch-tema" />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+            <button class="support-button account-logout" id="btn-logout-cliente">Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
     </header>
 
     <section class="hero">
@@ -29,6 +49,10 @@
       <p class="empty-state">Cargando productos…</p>
     </div>
   </div>
+
+  <footer class="site-footer">
+    <p>© 2026 NovaImport · <a href="/admin.html">Admin</a></p>
+  </footer>
 
   <div class="cart-overlay hidden" id="cart-overlay"></div>
   <div class="cart-drawer hidden" id="cart-drawer">
@@ -49,12 +73,147 @@
           <input type="text" id="input-nombre" placeholder="Tu nombre" required />
         </div>
         <div class="field">
-          <input type="text" id="input-contacto" placeholder="Correo o teléfono" required />
+          <input type="text" id="input-contacto" placeholder="Correo" required />
+        </div>
+        <div class="field">
+          <input type="tel" id="input-telefono" placeholder="Teléfono" required />
+        </div>
+        <div class="field">
+          <input type="text" id="input-direccion" placeholder="Dirección de entrega" required />
+        </div>
+        <div class="field">
+          <select id="input-metodo-pago" required>
+            <option value="" disabled selected>Método de pago</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="contraentrega">Pago contraentrega</option>
+          </select>
         </div>
         <button type="submit" class="btn-checkout">Confirmar pedido</button>
         <p class="checkout-msg" id="checkout-msg"></p>
       </form>
     </div>
+  </div>
+
+  <div class="lightbox-overlay hidden" id="lightbox-overlay">
+    <button class="lightbox-close" id="lightbox-close">&times;</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+  </div>
+
+  <div class="support-overlay hidden" id="pqrs-overlay"></div>
+  <div class="support-drawer hidden" id="pqrs-drawer">
+    <h2>
+      PQR'S
+      <button class="cart-close" id="btn-cerrar-pqrs">&times;</button>
+    </h2>
+    <p class="support-intro">Cuéntanos tu petición, queja, reclamo o sugerencia. Puedes adjuntar una foto o video como evidencia.</p>
+    <form class="checkout-form" id="form-pqrs">
+      <div class="field">
+        <input type="text" id="pqrs-nombre" placeholder="Tu nombre" required />
+      </div>
+      <div class="field">
+        <input type="text" id="pqrs-contacto" placeholder="Correo o teléfono" required />
+      </div>
+      <div class="field">
+        <select id="pqrs-tipo" required>
+          <option value="peticion">Petición</option>
+          <option value="queja">Queja</option>
+          <option value="reclamo" selected>Reclamo</option>
+          <option value="sugerencia">Sugerencia</option>
+        </select>
+      </div>
+      <div class="field">
+        <textarea id="pqrs-descripcion" placeholder="Describe tu caso con el mayor detalle posible" required></textarea>
+      </div>
+      <div class="field">
+        <label class="file-label" for="pqrs-archivo">Foto o video (opcional)</label>
+        <input type="file" id="pqrs-archivo" accept="image/*,video/*" />
+      </div>
+      <button type="submit" class="btn-checkout">Enviar caso</button>
+      <p class="checkout-msg" id="pqrs-msg"></p>
+    </form>
+  </div>
+
+  <div class="support-overlay hidden" id="garantias-overlay"></div>
+  <div class="support-drawer hidden" id="garantias-drawer">
+    <h2>
+      Garantías
+      <button class="cart-close" id="btn-cerrar-garantias">&times;</button>
+    </h2>
+    <p class="support-intro">Si tu producto presenta una falla, cuéntanos qué pasó. Puedes adjuntar una foto o video del problema.</p>
+    <form class="checkout-form" id="form-garantias">
+      <div class="field">
+        <input type="text" id="garantias-nombre" placeholder="Tu nombre" required />
+      </div>
+      <div class="field">
+        <input type="text" id="garantias-contacto" placeholder="Correo o teléfono" required />
+      </div>
+      <div class="field">
+        <input type="text" id="garantias-producto" placeholder="Producto (ej: iPhone 15 Pro 256GB)" required />
+      </div>
+      <div class="field">
+        <textarea id="garantias-descripcion" placeholder="Describe la falla del producto" required></textarea>
+      </div>
+      <div class="field">
+        <label class="file-label" for="garantias-archivo">Foto o video (opcional)</label>
+        <input type="file" id="garantias-archivo" accept="image/*,video/*" />
+      </div>
+      <button type="submit" class="btn-checkout">Enviar solicitud</button>
+      <p class="checkout-msg" id="garantias-msg"></p>
+    </form>
+  </div>
+
+  <div class="support-overlay hidden" id="login-overlay"></div>
+  <div class="support-drawer hidden" id="login-drawer">
+    <h2>
+      Iniciar sesión
+      <button class="cart-close" id="btn-cerrar-login">&times;</button>
+    </h2>
+    <form class="checkout-form" id="form-login-cliente">
+      <div class="field">
+        <input type="email" id="login-correo" placeholder="Correo" required />
+      </div>
+      <div class="field">
+        <input type="password" id="login-cliente-password" placeholder="Contraseña" required />
+      </div>
+      <button type="submit" class="btn-checkout">Ingresar</button>
+      <p class="checkout-msg" id="login-cliente-msg"></p>
+    </form>
+  </div>
+
+  <div class="support-overlay hidden" id="registro-overlay"></div>
+  <div class="support-drawer hidden" id="registro-drawer">
+    <h2>
+      Crear cuenta
+      <button class="cart-close" id="btn-cerrar-registro">&times;</button>
+    </h2>
+    <form class="checkout-form" id="form-registro-cliente">
+      <div class="field">
+        <input type="text" id="registro-nombre" placeholder="Tu nombre" required />
+      </div>
+      <div class="field">
+        <input type="email" id="registro-correo" placeholder="Correo" required />
+      </div>
+      <div class="field">
+        <input type="tel" id="registro-telefono" placeholder="Teléfono" required />
+      </div>
+      <div class="field">
+        <input type="text" id="registro-direccion" placeholder="Dirección" required />
+      </div>
+      <div class="field">
+        <input type="password" id="registro-password" placeholder="Contraseña" required />
+        <ul class="password-checklist" id="password-checklist">
+          <li data-regla="longitud"><span class="check-icon"></span> Mínimo 8 caracteres</li>
+          <li data-regla="mayuscula"><span class="check-icon"></span> Una letra mayúscula</li>
+          <li data-regla="minuscula"><span class="check-icon"></span> Una letra minúscula</li>
+          <li data-regla="numero"><span class="check-icon"></span> Un número</li>
+          <li data-regla="especial"><span class="check-icon"></span> Un carácter especial (!@#$%...)</li>
+        </ul>
+      </div>
+      <button type="submit" class="btn-checkout">Crear cuenta</button>
+      <p class="checkout-msg" id="registro-msg"></p>
+    </form>
   </div>
 
   <script src="/app.js"></script>

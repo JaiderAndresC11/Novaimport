@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaImport — Solicitar acceso admin</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .login-wrap {
+      max-width: 400px;
+      margin: 70px auto;
+      padding: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .login-wrap h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+    .login-wrap .intro {
+      font-size: 13px;
+      color: var(--ink-muted);
+      text-align: center;
+      margin: 0 0 22px;
+    }
+    .login-wrap .field { margin-bottom: 14px; }
+    .login-wrap input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+    }
+    .login-msg { font-size: 13px; margin-top: 12px; min-height: 18px; text-align: center; }
+    .login-msg.error { color: var(--danger); }
+    .login-footer-link { text-align: center; margin-top: 18px; font-size: 13px; color: var(--ink-muted); }
+    .login-footer-link a { color: var(--teal); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <h1><span style="color:var(--accent)">●</span> Solicitar acceso admin</h1>
+    <p class="intro">Tu cuenta quedará pendiente hasta que un administrador ya aprobado la apruebe.</p>
+    <form id="form-solicitud">
+      <div class="field">
+        <input type="text" id="sol-nombre" placeholder="Tu nombre" required />
+      </div>
+      <div class="field">
+        <input type="email" id="sol-correo" placeholder="Correo" required />
+      </div>
+      <div class="field">
+        <input type="password" id="sol-password" placeholder="Contraseña" required />
+        <ul class="password-checklist" id="password-checklist">
+          <li data-regla="longitud"><span class="check-icon"></span> Mínimo 8 caracteres</li>
+          <li data-regla="mayuscula"><span class="check-icon"></span> Una letra mayúscula</li>
+          <li data-regla="minuscula"><span class="check-icon"></span> Una letra minúscula</li>
+          <li data-regla="numero"><span class="check-icon"></span> Un número</li>
+          <li data-regla="especial"><span class="check-icon"></span> Un carácter especial (!@#$%...)</li>
+        </ul>
+      </div>
+      <button type="submit" class="btn-checkout">Enviar solicitud</button>
+      <p class="login-msg" id="sol-msg"></p>
+    </form>
+    <p class="login-footer-link"><a href="/admin_login.html">← Volver a iniciar sesión</a></p>
+  </div>
+
+  <script>
+    document.getElementById('sol-password').addEventListener('input', (e) => {
+      const valor = e.target.value;
+      const reglas = {
+        longitud: valor.length >= 8,
+        mayuscula: /[A-Z]/.test(valor),
+        minuscula: /[a-z]/.test(valor),
+        numero: /\d/.test(valor),
+        especial: /[^A-Za-z0-9]/.test(valor),
+      };
+      Object.entries(reglas).forEach(([regla, cumplida]) => {
+        const li = document.querySelector(`#password-checklist li[data-regla="${regla}"]`);
+        if (li) li.classList.toggle('cumplido', cumplida);
+      });
+    });
+
+    document.getElementById('form-solicitud').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgEl = document.getElementById('sol-msg');
+      msgEl.textContent = 'Enviando...';
+      msgEl.className = 'login-msg';
+
+      try {
+        const res = await fetch('/api/auth/solicitar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: document.getElementById('sol-nombre').value,
+            correo: document.getElementById('sol-correo').value,
+            password: document.getElementById('sol-password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'No se pudo enviar la solicitud');
+
+        msgEl.textContent = data.mensaje;
+        msgEl.className = 'login-msg';
+        document.getElementById('form-solicitud').reset();
+      } catch (err) {
+        msgEl.textContent = err.message;
+        msgEl.className = 'login-msg error';
+      }
+    });
+  </script>
+</body>
+</html>
