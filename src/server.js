@@ -35,7 +35,9 @@ app.use('/api/garantias', garantiasRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/img', express.static(path.join(__dirname, 'public', 'img')));
 
 app.use((err, req, res, next) => {
   if (err) {

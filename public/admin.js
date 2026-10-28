@@ -144,26 +144,34 @@ async function eliminarProducto(id) {
 
 // ===================== PQR'S / GARANTÍAS =====================
 const ESTADOS_PQRS = ['pendiente', 'en_proceso', 'resuelto'];
-const ESTADOS_GARANTIAS = ['pendiente', 'en_revision', 'aprobada', 'rechazada'];
+const ESTADOS_GARANTIAS = ['pendiente', 'en_revision', 'aprobada', 'rechazada', 'cerrada'];
+const ETIQUETAS_ESTADO = {
+  pendiente: 'Pendiente',
+  en_proceso: 'En proceso',
+  en_revision: 'En revisión',
+  resuelto: 'Cerrada',
+  aprobada: 'Aprobada',
+  rechazada: 'Rechazada',
+  cerrada: 'Cerrada',
+};
 
-function renderArchivo(ruta) {
-  if (!ruta) return '—';
-  const esVideo = /\.(mp4|mov|avi|webm)$/i.test(ruta);
-  return `<a class="admin-file-link" href="${escapeHtml(ruta)}" target="_blank" rel="noopener">${esVideo ? 'Ver video' : 'Ver foto'}</a>`;
-}
+function renderArchivo(ruta, tamano = 'compacto') {
+  if (!ruta) return '<span class="admin-no-attachment">Sin archivo</span>';
+  const extension = ruta.split(/[?#]/, 1)[0];
+  const esVideo = /\.(mp4|mov|avi|webm)$/i.test(extension);
+  const clase = `admin-attachment admin-attachment-${tamano}`;
+  const etiqueta = esVideo ? 'Ver video adjunto' : 'Ver foto adjunta';
 
-function formatEstado(estado) {
-  return (estado || '').replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function obtenerTelefonoCaso(caso) {
-  const valor = caso && (caso.telefono || caso.contacto);
-  if (!valor) return '—';
-  const texto = String(valor).trim();
-  if (/^[+]?[(]?[0-9]{1,4}[)]?[-\s0-9]{7,15}$/.test(texto) && !texto.includes('@')) {
-    return texto;
+  if (esVideo) {
+    return `<a class="${clase} admin-attachment-video" href="${escapeHtml(ruta)}" target="_blank" rel="noopener" aria-label="${etiqueta}"><span class="admin-attachment-icon" aria-hidden="true">▶</span><span>${etiqueta}</span></a>`;
   }
-  return '—';
+
+  return `<a class="${clase}" href="${escapeHtml(ruta)}" target="_blank" rel="noopener" aria-label="${etiqueta}"><img src="${escapeHtml(ruta)}" alt="${etiqueta}" loading="lazy"><span>Ver foto</span></a>`;
+}
+
+function etiquetaEstado(estado) {
+  const valor = String(estado || '');
+  return ETIQUETAS_ESTADO[valor] || valor.replace(/_/g, ' ');
 }
 
 function renderSelectEstado(estados, actual, onChange) {
@@ -172,28 +180,12 @@ function renderSelectEstado(estados, actual, onChange) {
   estados.forEach((estado) => {
     const opt = document.createElement('option');
     opt.value = estado;
-    opt.textContent = formatEstado(estado);
+    opt.textContent = etiquetaEstado(estado);
     if (estado === actual) opt.selected = true;
     select.appendChild(opt);
   });
   select.addEventListener('change', () => onChange(select.value));
   return select;
-}
-
-function renderEstadoSelectDetalle(tipo, actual, onChange) {
-  const select = document.getElementById('caso-estado-select');
-  const estados = tipo === 'pqrs' ? ESTADOS_PQRS : ESTADOS_GARANTIAS;
-  select.innerHTML = '';
-
-  estados.forEach((estado) => {
-    const opt = document.createElement('option');
-    opt.value = estado;
-    opt.textContent = formatEstado(estado);
-    if (estado === actual) opt.selected = true;
-    select.appendChild(opt);
-  });
-
-  select.onchange = () => onChange(select.value);
 }
 
 async function cargarPqrs() {
@@ -204,18 +196,16 @@ async function cargarPqrs() {
     document.getElementById('count-pqrs').textContent = casos.length;
 
     if (casos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay casos registrados.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay casos registrados.</td></tr>';
       return;
     }
 
     tbody.innerHTML = '';
     casos.forEach((c) => {
       const tr = document.createElement('tr');
-      const telefono = obtenerTelefonoCaso(c);
-      const contacto = c.contacto ? escapeHtml(c.contacto) : '—';
       tr.innerHTML = `
         <td><strong>${escapeHtml(c.numero_caso)}</strong></td>
-        <td>${escapeHtml(c.nombre)}<br><span class="admin-file-link" style="color:var(--ink-muted)">${contacto}</span>${telefono !== '—' ? `<br><span class="admin-file-link" style="color:var(--ink-muted)">${escapeHtml(telefono)}</span>` : ''}</td>
+        <td>${escapeHtml(c.nombre)}<br><span class="admin-file-link" style="color:var(--ink-muted)">${escapeHtml(c.contacto)}</span></td>
         <td>${escapeHtml(c.tipo)}</td>
         <td>${escapeHtml(c.descripcion)}</td>
         <td>${renderArchivo(c.archivo)}</td>
@@ -232,7 +222,7 @@ async function cargarPqrs() {
     });
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar los casos.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar los casos.</td></tr>';
   }
 }
 
@@ -244,18 +234,16 @@ async function cargarGarantias() {
     document.getElementById('count-garantias').textContent = casos.length;
 
     if (casos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay solicitudes registradas.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay solicitudes registradas.</td></tr>';
       return;
     }
 
     tbody.innerHTML = '';
     casos.forEach((c) => {
       const tr = document.createElement('tr');
-      const telefono = obtenerTelefonoCaso(c);
-      const contacto = c.contacto ? escapeHtml(c.contacto) : '—';
       tr.innerHTML = `
         <td><strong>${escapeHtml(c.numero_caso)}</strong></td>
-        <td>${escapeHtml(c.nombre)}<br><span class="admin-file-link" style="color:var(--ink-muted)">${contacto}</span>${telefono !== '—' ? `<br><span class="admin-file-link" style="color:var(--ink-muted)">${escapeHtml(telefono)}</span>` : ''}</td>
+        <td>${escapeHtml(c.nombre)}<br><span class="admin-file-link" style="color:var(--ink-muted)">${escapeHtml(c.contacto)}</span></td>
         <td>${escapeHtml(c.producto)}</td>
         <td>${escapeHtml(c.descripcion)}</td>
         <td>${renderArchivo(c.archivo)}</td>
@@ -272,11 +260,17 @@ async function cargarGarantias() {
     });
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar las solicitudes.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar las solicitudes.</td></tr>';
   }
 }
 
 async function actualizarEstado(recurso, id, estado) {
+  if (recurso === 'garantias' && estado === 'cerrada' &&
+      !confirm('Al cerrar esta solicitud, dejará de aparecer en la lista activa y no podrá recibir más comentarios. ¿Deseas continuar?')) {
+    await cargarGarantias();
+    return;
+  }
+
   try {
     const res = await fetch(`/api/${recurso}/${id}`, {
       method: 'PUT',
@@ -285,16 +279,10 @@ async function actualizarEstado(recurso, id, estado) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'No se pudo actualizar el estado');
-
     if (recurso === 'pqrs') {
       await cargarPqrs();
     } else {
       await cargarGarantias();
-    }
-
-    const modalAbierto = !document.getElementById('caso-overlay').classList.contains('hidden');
-    if (modalAbierto && document.getElementById('caso-id').value == id && document.getElementById('caso-tipo').value === recurso) {
-      await abrirDetalleCaso(recurso, id);
     }
   } catch (err) {
     alert(err.message || 'Error al actualizar el estado');
@@ -306,7 +294,6 @@ async function actualizarEstado(recurso, id, estado) {
 async function abrirDetalleCaso(tipo, id) {
   document.getElementById('caso-tipo').value = tipo;
   document.getElementById('caso-id').value = id;
-  document.getElementById('comentario-msg').textContent = '';
 
   try {
     const res = await fetch(`/api/${tipo}/${id}`);
@@ -314,14 +301,13 @@ async function abrirDetalleCaso(tipo, id) {
     if (!res.ok) throw new Error(caso.error || 'No se pudo cargar el caso');
 
     document.getElementById('caso-numero').textContent = caso.numero_caso;
-    document.getElementById('caso-nombre-cliente').textContent = caso.nombre || '—';
-    document.getElementById('caso-contacto-cliente').textContent = caso.contacto || '—';
-    document.getElementById('caso-telefono-cliente').textContent = obtenerTelefonoCaso(caso);
-    document.getElementById('caso-tipo-cliente').textContent = caso.producto || caso.tipo || '—';
-    document.getElementById('caso-fecha').textContent = fecha(caso.creado_en || new Date());
-    document.getElementById('caso-descripcion').textContent = caso.descripcion || '—';
-    document.getElementById('caso-archivo-wrap').innerHTML = renderArchivo(caso.archivo);
-    renderEstadoSelectDetalle(tipo, caso.estado, (nuevoEstado) => actualizarEstado(tipo, id, nuevoEstado));
+    document.getElementById('caso-nombre-cliente').textContent = caso.nombre;
+    document.getElementById('caso-contacto-cliente').textContent = caso.contacto;
+    document.getElementById('caso-descripcion').textContent = caso.descripcion;
+    const estadoEl = document.getElementById('caso-estado');
+    estadoEl.textContent = etiquetaEstado(caso.estado);
+    estadoEl.className = `badge badge-${escapeHtml(caso.estado)}`;
+    document.getElementById('caso-archivo-wrap').innerHTML = renderArchivo(caso.archivo, 'detalle');
 
     const cont = document.getElementById('caso-comentarios');
     if (!caso.comentarios || caso.comentarios.length === 0) {
@@ -332,8 +318,9 @@ async function abrirDetalleCaso(tipo, id) {
         const div = document.createElement('div');
         div.className = 'caso-comentario';
         div.innerHTML = `
-          <div class="caso-comentario-meta">${escapeHtml(c.autor)} · ${fecha(c.creado_en)}</div>
+          <div class="caso-comentario-meta"><strong>${escapeHtml(c.autor)}</strong><time>${fecha(c.creado_en)}</time></div>
           <div class="caso-comentario-texto">${escapeHtml(c.comentario)}</div>
+          ${c.archivo ? `<div class="caso-comentario-adjunto">${renderArchivo(c.archivo, 'comentario')}</div>` : ''}
         `;
         cont.appendChild(div);
       });
@@ -350,6 +337,7 @@ function cerrarDetalleCaso() {
   document.getElementById('caso-overlay').classList.add('hidden');
   document.getElementById('caso-drawer').classList.add('hidden');
   document.getElementById('form-comentario').reset();
+  document.getElementById('comentario-msg').textContent = '';
 }
 
 document.getElementById('btn-cerrar-caso').addEventListener('click', cerrarDetalleCaso);
@@ -360,22 +348,24 @@ document.getElementById('form-comentario').addEventListener('submit', async (e) 
   const tipo = document.getElementById('caso-tipo').value;
   const id = document.getElementById('caso-id').value;
   const msgEl = document.getElementById('comentario-msg');
-  msgEl.textContent = 'Enviando y notificando al cliente...';
+  msgEl.textContent = 'Guardando comentario y notificando al cliente...';
   msgEl.className = 'checkout-msg enviando';
 
+  // FormData (no JSON) porque ahora el comentario puede llevar un archivo adjunto
+  const formData = new FormData();
+  formData.append('comentario', document.getElementById('comentario-texto').value);
+  const archivo = document.getElementById('comentario-archivo').files[0];
+  if (archivo) formData.append('archivo', archivo);
+
   try {
-    const res = await fetch(`/api/${tipo}/${id}/comentarios`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comentario: document.getElementById('comentario-texto').value }),
-    });
+    const res = await fetch(`/api/${tipo}/${id}/comentarios`, { method: 'POST', body: formData });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'No se pudo enviar el comentario');
 
+    document.getElementById('form-comentario').reset();
+    await abrirDetalleCaso(tipo, id); // recarga el historial con el nuevo comentario
     msgEl.textContent = '¡Comentario enviado! El cliente fue notificado por correo.';
     msgEl.className = 'checkout-msg';
-    document.getElementById('comentario-texto').value = '';
-    abrirDetalleCaso(tipo, id); // recarga el historial con el nuevo comentario
   } catch (err) {
     msgEl.textContent = err.message || 'Error al enviar el comentario';
     msgEl.className = 'checkout-msg error';

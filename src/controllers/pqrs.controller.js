@@ -1,3 +1,4 @@
+const path = require('path');
 const pool = require('../config/db');
 const { enviarCorreo } = require('../config/mailer');
 
@@ -34,7 +35,6 @@ async function listarPqrs(req, res) {
   }
 }
 
-// GET /api/pqrs/:id -> el caso completo + su historial de comentarios
 async function obtenerPqrs(req, res) {
   try {
     const [casoRows] = await pool.query('SELECT * FROM vista_pqrs WHERE id = ?', [req.params.id]);
@@ -52,12 +52,15 @@ async function obtenerPqrs(req, res) {
   }
 }
 
-// POST /api/pqrs/:id/comentarios -> agrega un comentario Y le avisa al cliente por correo
+// POST /api/pqrs/:id/comentarios (multipart: comentario + archivo opcional)
 async function agregarComentarioPqrs(req, res) {
   const { comentario } = req.body;
   if (!comentario) {
     return res.status(400).json({ error: 'El comentario no puede estar vacío' });
   }
+
+  const archivoGuardado = req.file ? `/uploads/comentarios/${req.file.filename}` : null;
+  const archivoLocalAbsoluto = req.file ? path.join(__dirname, '..', '..', 'public', 'uploads', 'comentarios', req.file.filename) : null;
 
   try {
     const [casoRows] = await pool.query('SELECT * FROM vista_pqrs WHERE id = ?', [req.params.id]);
@@ -67,17 +70,21 @@ async function agregarComentarioPqrs(req, res) {
     }
 
     await pool.query(
-      `INSERT INTO comentarios (tipo, referencia_id, autor, comentario) VALUES ('pqrs', ?, 'Administrador', ?)`,
-      [req.params.id, comentario]
+      `INSERT INTO comentarios (tipo, referencia_id, autor, comentario, archivo) VALUES ('pqrs', ?, 'Administrador', ?, ?)`,
+      [req.params.id, comentario, archivoGuardado]
     );
 
     await enviarCorreo(
       caso.contacto,
       `Actualización de tu caso ${caso.numero_caso} — NovaImport`,
-      `<p>Hola ${caso.nombre},</p>
-       <p>Tu caso <strong>${caso.numero_caso}</strong> tiene una nueva actualización:</p>
-       <blockquote style="border-left:3px solid #FF6B35;padding-left:12px;color:#333">${comentario}</blockquote>
-       <p>— Equipo NovaImport</p>`
+      {
+        nombre: caso.nombre,
+        numeroCaso: caso.numero_caso,
+        estado: caso.estado,
+        tituloMensaje: 'Nueva actualización de tu caso',
+        cuerpoMensaje: comentario,
+      },
+      archivoLocalAbsoluto
     );
 
     res.status(201).json({ mensaje: 'Comentario agregado y cliente notificado' });
@@ -104,15 +111,17 @@ async function actualizarEstadoPqrs(req, res) {
 
     await pool.query('UPDATE pqrs SET estado = ? WHERE id = ?', [estado, req.params.id]);
 
-    // Si el caso se cierra (queda resuelto), le avisamos al cliente por correo.
     if (estado === 'resuelto') {
       await enviarCorreo(
         caso.contacto,
-        `Tu caso ${caso.numero_caso} fue resuelto — NovaImport`,
-        `<p>Hola ${caso.nombre},</p>
-         <p>Tu caso <strong>${caso.numero_caso}</strong> ha sido marcado como <strong>resuelto</strong>.</p>
-         <p>Si tienes alguna duda adicional, puedes contactarnos de nuevo.</p>
-         <p>— Equipo NovaImport</p>`
+        `Tu caso ${caso.numero_caso} fue cerrado — NovaImport`,
+        {
+          nombre: caso.nombre,
+          numeroCaso: caso.numero_caso,
+          estado: 'resuelto',
+          tituloMensaje: 'Tu caso ha sido cerrado',
+          cuerpoMensaje: 'Gracias por tu paciencia. Si tienes alguna duda adicional, puedes contactarnos de nuevo.',
+        }
       );
     }
 

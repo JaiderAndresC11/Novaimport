@@ -164,23 +164,13 @@
     </h2>
 
     <div id="caso-info" class="caso-info">
-      <div class="caso-grid">
-        <div><strong>Cliente:</strong> <span id="caso-nombre-cliente"></span></div>
-        <div><strong>Contacto:</strong> <span id="caso-contacto-cliente"></span></div>
-        <div><strong>Teléfono:</strong> <span id="caso-telefono-cliente"></span></div>
-        <div><strong>Tipo / producto:</strong> <span id="caso-tipo-cliente"></span></div>
-        <div><strong>Fecha:</strong> <span id="caso-fecha"></span></div>
-        <div class="caso-full-width"><strong>Descripción:</strong> <span id="caso-descripcion"></span></div>
-        <div class="caso-full-width"><strong>Archivo:</strong> <span id="caso-archivo-wrap"></span></div>
-      </div>
-
-      <div class="field" style="margin-top:14px;">
-        <label for="caso-estado-select" class="field-label">Estado del caso</label>
-        <select id="caso-estado-select" class="estado-select"></select>
-      </div>
+      <div class="caso-estado-linea">Estado <span id="caso-estado" class="badge"></span></div>
+      <p><strong id="caso-nombre-cliente"></strong> · <span id="caso-contacto-cliente" style="color:var(--ink-muted)"></span></p>
+      <p id="caso-descripcion" class="caso-descripcion"></p>
+      <p id="caso-archivo-wrap"></p>
     </div>
 
-    <h3 style="font-size:14px; margin:20px 0 10px;">Historial de comentarios</h3>
+    <h3 class="caso-comentarios-titulo">Historial de comentarios</h3>
     <div id="caso-comentarios" class="caso-comentarios">
       <p class="empty-state">Sin comentarios todavía.</p>
     </div>
@@ -188,10 +178,16 @@
     <form id="form-comentario" class="comentario-form">
       <input type="hidden" id="caso-tipo" />
       <input type="hidden" id="caso-id" />
-      <div class="field">
-        <textarea id="comentario-texto" class="comentario-textarea" placeholder="Escribe una actualización para el cliente... se le enviará por correo" required></textarea>
+      <div class="field comentario-editor">
+        <label class="field-label" for="comentario-texto">Nueva actualización</label>
+        <textarea id="comentario-texto" placeholder="Escribe una actualización para el cliente... se le enviará por correo" required></textarea>
+        <span class="comentario-ayuda">El cliente recibirá este mensaje por correo electrónico.</span>
       </div>
-      <button type="submit" class="btn-checkout comentario-btn">Enviar comentario</button>
+      <div class="field">
+        <label class="file-label" for="comentario-archivo">Evidencia adjunta (foto o video, opcional) — viaja adjunta en el correo</label>
+        <input type="file" id="comentario-archivo" accept="image/*,video/*" />
+      </div>
+      <button type="submit" class="btn-checkout comentario-btn">Guardar comentario</button>
       <p class="checkout-msg" id="comentario-msg"></p>
     </form>
   </div>

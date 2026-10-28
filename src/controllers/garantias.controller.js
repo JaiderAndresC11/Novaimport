@@ -1,3 +1,4 @@
+const path = require('path');
 const pool = require('../config/db');
 const { enviarCorreo } = require('../config/mailer');
 
@@ -26,7 +27,7 @@ async function crearGarantia(req, res) {
 
 async function listarGarantias(req, res) {
   try {
-    const [rows] = await pool.query('SELECT * FROM vista_garantias ORDER BY creado_en DESC');
+    const [rows] = await pool.query("SELECT * FROM vista_garantias WHERE estado <> 'cerrada' ORDER BY creado_en DESC");
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -34,7 +35,6 @@ async function listarGarantias(req, res) {
   }
 }
 
-// GET /api/garantias/:id -> la solicitud completa + su historial de comentarios
 async function obtenerGarantia(req, res) {
   try {
     const [casoRows] = await pool.query('SELECT * FROM vista_garantias WHERE id = ?', [req.params.id]);
@@ -52,12 +52,14 @@ async function obtenerGarantia(req, res) {
   }
 }
 
-// POST /api/garantias/:id/comentarios -> agrega un comentario Y le avisa al cliente por correo
 async function agregarComentarioGarantia(req, res) {
   const { comentario } = req.body;
   if (!comentario) {
     return res.status(400).json({ error: 'El comentario no puede estar vacío' });
   }
+
+  const archivoGuardado = req.file ? `/uploads/comentarios/${req.file.filename}` : null;
+  const archivoLocalAbsoluto = req.file ? path.join(__dirname, '..', '..', 'public', 'uploads', 'comentarios', req.file.filename) : null;
 
   try {
     const [casoRows] = await pool.query('SELECT * FROM vista_garantias WHERE id = ?', [req.params.id]);
@@ -65,19 +67,26 @@ async function agregarComentarioGarantia(req, res) {
     if (!caso) {
       return res.status(404).json({ error: 'Solicitud no encontrada' });
     }
+    if (caso.estado === 'cerrada') {
+      return res.status(409).json({ error: 'No se pueden agregar comentarios a una solicitud cerrada' });
+    }
 
     await pool.query(
-      `INSERT INTO comentarios (tipo, referencia_id, autor, comentario) VALUES ('garantia', ?, 'Administrador', ?)`,
-      [req.params.id, comentario]
+      `INSERT INTO comentarios (tipo, referencia_id, autor, comentario, archivo) VALUES ('garantia', ?, 'Administrador', ?, ?)`,
+      [req.params.id, comentario, archivoGuardado]
     );
 
     await enviarCorreo(
       caso.contacto,
       `Actualización de tu solicitud ${caso.numero_caso} — NovaImport`,
-      `<p>Hola ${caso.nombre},</p>
-       <p>Tu solicitud de garantía <strong>${caso.numero_caso}</strong> tiene una nueva actualización:</p>
-       <blockquote style="border-left:3px solid #FF6B35;padding-left:12px;color:#333">${comentario}</blockquote>
-       <p>— Equipo NovaImport</p>`
+      {
+        nombre: caso.nombre,
+        numeroCaso: caso.numero_caso,
+        estado: caso.estado,
+        tituloMensaje: 'Nueva actualización de tu solicitud',
+        cuerpoMensaje: comentario,
+      },
+      archivoLocalAbsoluto
     );
 
     res.status(201).json({ mensaje: 'Comentario agregado y cliente notificado' });
@@ -89,7 +98,7 @@ async function agregarComentarioGarantia(req, res) {
 
 async function actualizarEstadoGarantia(req, res) {
   const { estado } = req.body;
-  const estadosValidos = ['pendiente', 'en_revision', 'aprobada', 'rechazada'];
+  const estadosValidos = ['pendiente', 'en_revision', 'aprobada', 'rechazada', 'cerrada'];
 
   if (!estadosValidos.includes(estado)) {
     return res.status(400).json({ error: `Estado inválido. Usa uno de: ${estadosValidos.join(', ')}` });
@@ -101,21 +110,38 @@ async function actualizarEstadoGarantia(req, res) {
     if (!caso) {
       return res.status(404).json({ error: 'Solicitud no encontrada' });
     }
+    if (caso.estado === 'cerrada') {
+      return res.status(409).json({ error: 'La solicitud ya está cerrada y no se puede modificar' });
+    }
+    if (caso.estado === estado) {
+      return res.json({ mensaje: 'La solicitud ya tenía ese estado', estado });
+    }
 
     await pool.query('UPDATE garantias SET estado = ? WHERE id = ?', [estado, req.params.id]);
 
-    // Estados finales ("se cierra el caso") -> avisamos por correo.
-    if (estado === 'aprobada' || estado === 'rechazada') {
-      const veredicto = estado === 'aprobada' ? 'aprobada' : 'rechazada';
-      await enviarCorreo(
-        caso.contacto,
-        `Tu solicitud de garantía ${caso.numero_caso} fue ${veredicto} — NovaImport`,
-        `<p>Hola ${caso.nombre},</p>
-         <p>Tu solicitud de garantía <strong>${caso.numero_caso}</strong> ha sido <strong>${veredicto}</strong>.</p>
-         <p>Si tienes alguna duda adicional, puedes contactarnos de nuevo.</p>
-         <p>— Equipo NovaImport</p>`
-      );
-    }
+    const etiquetaEstado = {
+      pendiente: 'Pendiente',
+      en_revision: 'En revisión',
+      aprobada: 'Aprobada',
+      rechazada: 'Rechazada',
+      cerrada: 'Cerrada',
+    }[estado];
+    const estaCerrada = estado === 'cerrada';
+    await enviarCorreo(
+      caso.contacto,
+      estaCerrada
+        ? `Tu solicitud de garantía ${caso.numero_caso} fue cerrada — NovaImport`
+        : `Actualización de tu solicitud de garantía ${caso.numero_caso} — NovaImport`,
+      {
+        nombre: caso.nombre,
+        numeroCaso: caso.numero_caso,
+        estado,
+        tituloMensaje: estaCerrada ? 'Tu solicitud ha sido cerrada' : 'Tu solicitud fue actualizada',
+        cuerpoMensaje: estaCerrada
+          ? 'Hemos cerrado tu solicitud de garantía. Gracias por comunicarte con NovaImport.'
+          : `El estado de tu solicitud ahora es: ${etiquetaEstado}. Te enviaremos otra actualización cuando haya novedades.`,
+      }
+    );
 
     res.json({ mensaje: 'Estado actualizado', estado });
   } catch (err) {

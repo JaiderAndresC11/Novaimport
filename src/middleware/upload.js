@@ -2,14 +2,11 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Crea el almacenamiento para una carpeta específica dentro de public/uploads
 function crearStorage(carpeta) {
-  const destino = path.join(__dirname, '..', 'public', 'uploads', carpeta);
-
+  const destino = path.join(__dirname, '..', '..', 'public', 'uploads', carpeta);
   if (!fs.existsSync(destino)) {
     fs.mkdirSync(destino, { recursive: true });
   }
-
   return multer.diskStorage({
     destination: (req, file, cb) => cb(null, destino),
     filename: (req, file, cb) => {
@@ -20,12 +17,10 @@ function crearStorage(carpeta) {
   });
 }
 
-// Solo permite imágenes y videos, máximo 20MB
 function filtroArchivo(req, file, cb) {
   const permitidos = /jpeg|jpg|png|webp|gif|mp4|mov|avi|webm/;
   const extensionOk = permitidos.test(path.extname(file.originalname).toLowerCase());
   const mimeOk = /^(image|video)\//.test(file.mimetype);
-
   if (extensionOk && mimeOk) {
     cb(null, true);
   } else {
@@ -45,15 +40,18 @@ const uploadGarantias = multer({
   limits: { fileSize: 20 * 1024 * 1024 },
 });
 
-// Las imágenes de productos van directo a public/img (la misma carpeta
-// donde ya tienes las fotos que descargaste), no a una subcarpeta aparte.
-function crearStorageImg() {
-  const destino = path.join(__dirname, '..', 'public', 'img');
+// Nuevo: para adjuntar evidencia (foto/video) directamente en un comentario
+const uploadComentarios = multer({
+  storage: crearStorage('comentarios'),
+  fileFilter: filtroArchivo,
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
 
+function crearStorageImg() {
+  const destino = path.join(__dirname, '..', '..', 'public', 'img');
   if (!fs.existsSync(destino)) {
     fs.mkdirSync(destino, { recursive: true });
   }
-
   return multer.diskStorage({
     destination: (req, file, cb) => cb(null, destino),
     filename: (req, file, cb) => {
@@ -74,4 +72,4 @@ const uploadProductos = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-module.exports = { uploadPqrs, uploadGarantias, uploadProductos };
+module.exports = { uploadPqrs, uploadGarantias, uploadComentarios, uploadProductos };
