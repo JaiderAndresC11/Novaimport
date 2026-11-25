@@ -86,10 +86,13 @@ function construirCorreoHtml({ nombre, numeroCaso, estado, tituloMensaje, cuerpo
 // archivoLocal (opcional): ruta absoluta en el servidor de una imagen o
 // video a adjuntar de verdad en el correo (no solo un enlace).
 async function enviarCorreo(destinatario, asunto, opciones, archivoLocal = null) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    return { enviado: false, aviso: 'El servicio no tiene configuradas las credenciales de correo.' };
+  }
+
   const pareceCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinatario);
   if (!pareceCorreo) {
-    console.log(`No se envió correo: "${destinatario}" no parece una dirección de correo válida.`);
-    return;
+    return { enviado: false, aviso: 'El contacto registrado no parece ser una dirección de correo válida.' };
   }
 
   const attachments = [];
@@ -98,16 +101,27 @@ async function enviarCorreo(destinatario, asunto, opciones, archivoLocal = null)
   }
 
   try {
-    await transportador.sendMail({
+    const resultado = await transportador.sendMail({
       from: `"NovaImport" <${process.env.EMAIL_USER}>`,
       to: destinatario,
       subject: asunto,
       html: construirCorreoHtml(opciones),
       attachments,
     });
-    console.log(`Correo enviado a ${destinatario}: ${asunto}`);
+    console.log(`Correo aceptado por SMTP (messageId: ${resultado.messageId}).`);
+    return { enviado: true };
   } catch (err) {
-    console.error('Error al enviar correo:', err.message);
+    console.error('Error al enviar correo:', err.code || 'SMTP_ERROR');
+    const avisos = {
+      EAUTH: 'El servidor de correo rechazó las credenciales. Para Gmail, configura una contraseña de aplicación.',
+      ETIMEDOUT: 'Se agotó el tiempo de conexión al servidor de correo.',
+      ECONNECTION: 'No se pudo conectar al servidor de correo.',
+      ESOCKET: 'Se interrumpió la conexión con el servidor de correo.',
+    };
+    return {
+      enviado: false,
+      aviso: avisos[err.code] || 'El servidor de correo no aceptó el mensaje. Revisa los registros del servicio.',
+    };
   }
 }
 

@@ -43,6 +43,8 @@ function construirFiltros() {
 function renderGrid() {
   const grid = document.getElementById('grid-productos');
   const lista = categoriaActiva === 'todos' ? productos : productos.filter((p) => p.categoria === categoriaActiva);
+  const contador = document.getElementById('catalog-count');
+  contador.textContent = `${lista.length} ${lista.length === 1 ? 'producto' : 'productos'}`;
 
   if (lista.length === 0) {
     grid.innerHTML = '<p class="empty-state">No hay productos en esta categoría.</p>';

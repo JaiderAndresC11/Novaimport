@@ -8,6 +8,9 @@ async function crearPqrs(req, res) {
   if (!nombre || !contacto || !descripcion) {
     return res.status(400).json({ error: 'Se requiere nombre, contacto y descripcion' });
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contacto)) {
+    return res.status(400).json({ error: 'Ingresa un correo electrónico válido para recibir respuestas sobre tu caso.' });
+  }
 
   const archivo = req.file ? `/uploads/pqrs/${req.file.filename}` : null;
 
@@ -74,7 +77,7 @@ async function agregarComentarioPqrs(req, res) {
       [req.params.id, comentario, archivoGuardado]
     );
 
-    await enviarCorreo(
+    const resultadoCorreo = await enviarCorreo(
       caso.contacto,
       `Actualización de tu caso ${caso.numero_caso} — NovaImport`,
       {
@@ -87,7 +90,11 @@ async function agregarComentarioPqrs(req, res) {
       archivoLocalAbsoluto
     );
 
-    res.status(201).json({ mensaje: 'Comentario agregado y cliente notificado' });
+    res.status(201).json({
+      mensaje: 'Comentario agregado',
+      notificacion: resultadoCorreo.enviado ? 'enviado' : 'fallido',
+      aviso: resultadoCorreo.aviso || null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al agregar el comentario' });
@@ -111,8 +118,9 @@ async function actualizarEstadoPqrs(req, res) {
 
     await pool.query('UPDATE pqrs SET estado = ? WHERE id = ?', [estado, req.params.id]);
 
+    let resultadoCorreo = { enviado: false, aviso: null };
     if (estado === 'resuelto') {
-      await enviarCorreo(
+      resultadoCorreo = await enviarCorreo(
         caso.contacto,
         `Tu caso ${caso.numero_caso} fue cerrado — NovaImport`,
         {
@@ -125,7 +133,12 @@ async function actualizarEstadoPqrs(req, res) {
       );
     }
 
-    res.json({ mensaje: 'Estado actualizado', estado });
+    res.json({
+      mensaje: 'Estado actualizado',
+      estado,
+      notificacion: estado === 'resuelto' ? (resultadoCorreo.enviado ? 'enviado' : 'fallido') : 'no_requerida',
+      aviso: resultadoCorreo.aviso || null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar el estado' });

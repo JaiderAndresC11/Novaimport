@@ -1,6 +1,6 @@
 const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const money = (n) => fmt.format(Number(n) || 0);
-const fecha = (iso) => new Date(iso).toLocaleString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fecha = (iso) => new Date(iso).toLocaleString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Bogota' });
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -279,6 +279,9 @@ async function actualizarEstado(recurso, id, estado) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'No se pudo actualizar el estado');
+    if (data.notificacion === 'fallido') {
+      alert(`El estado se actualizó, pero no se pudo enviar el correo. ${data.aviso || ''}`);
+    }
     if (recurso === 'pqrs') {
       await cargarPqrs();
     } else {
@@ -348,7 +351,7 @@ document.getElementById('form-comentario').addEventListener('submit', async (e) 
   const tipo = document.getElementById('caso-tipo').value;
   const id = document.getElementById('caso-id').value;
   const msgEl = document.getElementById('comentario-msg');
-  msgEl.textContent = 'Guardando comentario y notificando al cliente...';
+  msgEl.textContent = 'Guardando comentario y verificando el envío del correo...';
   msgEl.className = 'checkout-msg enviando';
 
   // FormData (no JSON) porque ahora el comentario puede llevar un archivo adjunto
@@ -364,8 +367,10 @@ document.getElementById('form-comentario').addEventListener('submit', async (e) 
 
     document.getElementById('form-comentario').reset();
     await abrirDetalleCaso(tipo, id); // recarga el historial con el nuevo comentario
-    msgEl.textContent = '¡Comentario enviado! El cliente fue notificado por correo.';
-    msgEl.className = 'checkout-msg';
+    msgEl.textContent = data.notificacion === 'enviado'
+      ? '¡Comentario agregado! El correo de notificación fue enviado.'
+      : `¡Comentario agregado!, pero no se pudo enviar el correo. ${data.aviso || 'Revisa la configuración del correo.'}`;
+    msgEl.className = data.notificacion === 'enviado' ? 'checkout-msg' : 'checkout-msg error';
   } catch (err) {
     msgEl.textContent = err.message || 'Error al enviar el comentario';
     msgEl.className = 'checkout-msg error';
@@ -441,8 +446,18 @@ async function actualizarSolicitud(id, estado) {
 
 // ===================== INICIO =====================
 document.getElementById('btn-logout').addEventListener('click', async () => {
-  await fetch('/api/auth/logout', { method: 'POST' });
-  window.location.href = '/admin-login.html';
+  const boton = document.getElementById('btn-logout');
+  boton.disabled = true;
+
+  try {
+    const res = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'No se pudo cerrar la sesión');
+    window.location.replace('/');
+  } catch (err) {
+    boton.disabled = false;
+    alert(err.message || 'No se pudo cerrar la sesión. Inténtalo de nuevo.');
+  }
 });
 
 document.addEventListener('DOMContentLoaded', () => {

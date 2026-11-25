@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NovaImport — Tecnología importada</title>
+  <meta name="description" content="Descubre tecnología Apple y Samsung original en NovaImport. Explora productos, consulta disponibilidad y compra fácil." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -36,18 +37,48 @@
     </header>
 
     <section class="hero">
-      <p class="eyebrow">Importados · 100% Original  · Con garantia con la marca</p>
-      <h1>Tecnología Apple y Samsung, importada al mejor precio</h1>
-      <p>iPhones, MacBooks, iPads, smartwatches y más — productos originales importados, sin intermediarios.</p>
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="hero-status"></span>TECNOLOGÍA ORIGINAL · IMPORTADA</p>
+        <h1>Lo último en tecnología. <span>A tu manera.</span></h1>
+        <p>Encuentra iPhone, MacBook, iPad, Samsung y más. Productos originales, atención cercana y una compra sencilla.</p>
+        <a class="hero-cta" href="#catalogo">Explorar catálogo <span aria-hidden="true">↓</span></a>
+        <div class="hero-highlights">
+          <span>Productos originales</span>
+          <span>Atención personalizada</span>
+          <span>Compra fácil y segura</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-orbit hero-orbit-outer"></div>
+        <div class="hero-orbit hero-orbit-inner"></div>
+        <div class="hero-device hero-device-back"></div>
+        <div class="hero-device hero-device-front">
+          <span class="hero-device-camera"></span>
+          <span class="hero-device-glow"></span>
+          <span class="hero-device-mark">N</span>
+        </div>
+        <div class="hero-art-label"><span></span> NUEVA GENERACIÓN</div>
+        <div class="hero-art-note">Tecnología para<br /><strong>lo que viene.</strong></div>
+      </div>
     </section>
 
-    <div class="filters" id="filters">
-      <button class="filter-chip active" data-categoria="todos">Todos</button>
-    </div>
+    <section class="catalog" id="catalogo" aria-labelledby="catalog-title">
+      <div class="catalog-heading">
+        <div>
+          <p class="catalog-eyebrow">SELECCIÓN NOVAIMPORT</p>
+          <h2 id="catalog-title">Encuentra tu próximo favorito</h2>
+        </div>
+        <span class="catalog-count" id="catalog-count" aria-live="polite">Cargando catálogo</span>
+      </div>
 
-    <div class="grid" id="grid-productos">
-      <p class="empty-state">Cargando productos…</p>
-    </div>
+      <div class="filters" id="filters">
+        <button class="filter-chip active" data-categoria="todos">Todos</button>
+      </div>
+
+      <div class="grid" id="grid-productos">
+        <p class="empty-state">Cargando productos…</p>
+      </div>
+    </section>
   </div>
 
   <footer class="site-footer">
@@ -113,7 +144,7 @@
         <input type="text" id="pqrs-nombre" placeholder="Tu nombre" required />
       </div>
       <div class="field">
-        <input type="text" id="pqrs-contacto" placeholder="Correo o teléfono" required />
+        <input type="email" id="pqrs-contacto" placeholder="Correo electrónico para recibir respuestas" required />
       </div>
       <div class="field">
         <select id="pqrs-tipo" required>
@@ -147,7 +178,7 @@
         <input type="text" id="garantias-nombre" placeholder="Tu nombre" required />
       </div>
       <div class="field">
-        <input type="text" id="garantias-contacto" placeholder="Correo o teléfono" required />
+        <input type="email" id="garantias-contacto" placeholder="Correo electrónico para recibir respuestas" required />
       </div>
       <div class="field">
         <input type="text" id="garantias-producto" placeholder="Producto (ej: iPhone 15 Pro 256GB)" required />

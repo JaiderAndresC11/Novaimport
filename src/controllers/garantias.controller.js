@@ -8,6 +8,9 @@ async function crearGarantia(req, res) {
   if (!nombre || !contacto || !producto || !descripcion) {
     return res.status(400).json({ error: 'Se requiere nombre, contacto, producto y descripcion' });
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contacto)) {
+    return res.status(400).json({ error: 'Ingresa un correo electrónico válido para recibir respuestas sobre tu solicitud.' });
+  }
 
   const archivo = req.file ? `/uploads/garantias/${req.file.filename}` : null;
 
@@ -76,7 +79,7 @@ async function agregarComentarioGarantia(req, res) {
       [req.params.id, comentario, archivoGuardado]
     );
 
-    await enviarCorreo(
+    const resultadoCorreo = await enviarCorreo(
       caso.contacto,
       `Actualización de tu solicitud ${caso.numero_caso} — NovaImport`,
       {
@@ -89,7 +92,11 @@ async function agregarComentarioGarantia(req, res) {
       archivoLocalAbsoluto
     );
 
-    res.status(201).json({ mensaje: 'Comentario agregado y cliente notificado' });
+    res.status(201).json({
+      mensaje: 'Comentario agregado',
+      notificacion: resultadoCorreo.enviado ? 'enviado' : 'fallido',
+      aviso: resultadoCorreo.aviso || null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al agregar el comentario' });
@@ -127,7 +134,7 @@ async function actualizarEstadoGarantia(req, res) {
       cerrada: 'Cerrada',
     }[estado];
     const estaCerrada = estado === 'cerrada';
-    await enviarCorreo(
+    const resultadoCorreo = await enviarCorreo(
       caso.contacto,
       estaCerrada
         ? `Tu solicitud de garantía ${caso.numero_caso} fue cerrada — NovaImport`
@@ -143,7 +150,12 @@ async function actualizarEstadoGarantia(req, res) {
       }
     );
 
-    res.json({ mensaje: 'Estado actualizado', estado });
+    res.json({
+      mensaje: 'Estado actualizado',
+      estado,
+      notificacion: resultadoCorreo.enviado ? 'enviado' : 'fallido',
+      aviso: resultadoCorreo.aviso || null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar el estado' });

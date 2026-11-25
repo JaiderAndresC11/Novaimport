@@ -1,0 +1,2 @@
+ALTER TABLE garantias
+  MODIFY COLUMN estado VARCHAR(30) NOT NULL DEFAULT 'pendiente';

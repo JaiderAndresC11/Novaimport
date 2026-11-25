@@ -49,7 +49,18 @@ async function login(req, res) {
 }
 
 function logout(req, res) {
-  req.session.destroy(() => {
+  if (!req.session) {
+    res.clearCookie('connect.sid', { path: '/' });
+    return res.json({ mensaje: 'Sesión cerrada' });
+  }
+
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('No se pudo destruir la sesión de administrador:', err);
+      return res.status(500).json({ error: 'No se pudo cerrar la sesión. Inténtalo de nuevo.' });
+    }
+
+    res.clearCookie('connect.sid', { path: '/' });
     res.json({ mensaje: 'Sesión cerrada' });
   });
 }
